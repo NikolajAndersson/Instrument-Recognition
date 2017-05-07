@@ -1,14 +1,17 @@
 %% Autocorrelation for seqment
-
+clc
+clear 
 [x, fs] = audioread('09viola.flac');
 
 % Implement the autocorrelation pitch estimation method in, e.g., MATLAB as a function.
 % The function should have the following input
 
-l = 100;
-h = 1000;
-segment = x(fs:fs*2, 1);
-autocorrelation(segment, fs, l, h)
+l = 20;
+h = 100;
+winSize = 256
+s = fs:fs+winSize-1;
+segment = x(s, 1);
+fundamentalfrequency(segment, fs, l, h)
 %% Autocorrelation for entire signal
 % frequencies in Hz
 l = 10; % low limit
@@ -19,12 +22,12 @@ frequencies = pitchPlot('09viola.flac', segmentSize, overlap, l, h);
 plot(frequencies)
 
 %% 
-algorithm = 'autocorrelation'
-
-modelOrder = 10;
 l = 10; % low limit
 h = 2000; % high limit
-segmentSize = 0.15; % in seconds
-overlap = 10; % in percent
-frequencies = pitchPlot2(algorithm,'09viola.flac', segmentSize, overlap, l, h, modelOrder);
+name = '09viola.flac';
+
+segmentSize = 0.2; % in seconds
+overlap = 100; % in percent
+frequencies = pitchPlot(name, segmentSize, overlap, l, h);
 plot(frequencies)
+title(name, 'fontSize',16)
