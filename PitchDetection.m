@@ -6,8 +6,8 @@ clear
 % Implement the autocorrelation pitch estimation method in, e.g., MATLAB as a function.
 % The function should have the following input
 
-l = 20;
-h = 100;
+l = 150;
+h = 1000;
 winSize = 256
 s = fs:fs+winSize-1;
 segment = x(s, 1);
