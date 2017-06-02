@@ -1,7 +1,17 @@
 function [ mfcc ] = getMFCC(s, N, T, coef )
 
-%N = 2^12;
-%[s, sr] = audioread(name);
+% [l,m] = size(s);
+% hopsize = N/2;
+% 
+% frnop = floor(l/hopsize-1);
+% file = s(:,1);
+% for i=1:frnop
+%     fr=s((i-1)*hop+(1:N));
+%     
+%     preEmphasized = filter([1 -.97], 1, fr);
+%     mX(:,i)=abs(fft(fr.*hanning(N))))';
+% end
+
 sample = s(40001:40001+N-1,1);
 
 preEmphasized = filter([1 -.97], 1, sample);
@@ -16,8 +26,8 @@ log10X = log10(filteredX);
 
 % DCT
 mfcc = dct(log10X);
-mfcc = mfcc(1:coef);
-%plot(mfcc(1:13))
+mfcc = mfcc(2:coef+1);
+plot(mfcc(1:13))
 
 
 
