@@ -34,10 +34,13 @@ figure; hold on;
 for i = 1:dataAmount
     [s, ~] = audioread([filepathsax fileName(i, :)]);
     mfcc = getMFCC(s, N, T, coef);
-    saxdata(i,:) = [mfcc];
+    saxdata(i,:) = mfcc;
     plot(saxdata(i,:))
 end
 title('Saxophone MFCC')
+ylabel('Magnitude','FontSize',14)
+xlabel('Mel-Frequency Cepstrum-Coeffients','FontSize',14)
+hold off;
 %% Clarinet
 clarinetdata = [];
 claID = 'cla';
@@ -49,6 +52,9 @@ for i = 1:dataAmount
     plot(clarinetdata(i,:))
 end
 title('Clarinet MFCC')
+ylabel('Magnitude','FontSize',14)
+xlabel('Mel-Frequency Cepstrum-Coeffients','FontSize',14)
+hold off;
 %% Trumpet
 trumpetdata = [];
 truID = 'tru';
@@ -60,6 +66,9 @@ for i = 1:dataAmount
     plot(trumpetdata(i,:))
 end
 title('Trumpet MFCC')
+ylabel('Magnitude','FontSize',14)
+xlabel('Mel-Frequency Cepstrum-Coeffients','FontSize',14)
+hold off;
 %% Violin
 violindata = [];
 vioID = 'vio';
@@ -71,7 +80,9 @@ for i = 1:dataAmount
     plot(violindata(i,:))
 end
 title('Violin MFCC')
-
+ylabel('Magnitude','FontSize',14)
+xlabel('Mel-Frequency Cepstrum-Coeffients','FontSize',14)
+hold off;
 %% Build labels and dataset
 labels = [];
 
@@ -97,7 +108,7 @@ z = prdataset(X, labels);
 %%
 figure
 scatterd(z)
-title('First 2 Cepstrum Coeffients')
+title('First 2 Mel-Frequency Cepstrum-Coeffients')
 
 %%
 
@@ -199,11 +210,11 @@ title('Scatter plot of QDC classifier')
 close all
 part = cvpartition(labels,'KFold',10); % data divided into 10% test and 90% traning
 cMat = [];
-%avgMat = cell(10,1);
+
 for i = 1:10
     pr_X_tr = prdataset(X(part.training(i),:), labels(part.training(i)));
     pr_X_tst = prdataset(X(part.test(i), :), labels(part.test(i)));
-    [pr_knn,nr_nn_used] = knnc(pr_X_tr);  % k-nearest neighbor classifier - knnc
+    [pr_knn,nr_nn_used] = knnc(pr_X_tr,3);  % k-nearest neighbor classifier - knnc
     
     % K-Nearest Neighbor
     knn_w = pr_X_tst * pr_knn;
@@ -217,22 +228,22 @@ for i = 1:10
             end
         end
     end
-    accuracy(i,:) = getAccuracy(knn_w);
-    
+    % get accuracy, correct/Total
+    accuracy(i,:) = sum(diag(C))/sum(sum(C));   
 end
-% Average confusion matrix
-% [saxdata; clarinetdata; trumpetdata; violindata];
 
-rownames = {'sax'; 'clarinet'; 'trumpet'; 'violin'};
+% Average confusion matrix
+rownames = {'clarinet'; 'sax'; 'trumpet'; 'violin'};
 avgMat = (cMat/10)/10;
-sax = avgMat(:,1);
-clarinet = avgMat(:,2);
+
+clarinet = avgMat(:,1);
+sax = avgMat(:,2);
 trumpet = avgMat(:,3);
 violin = avgMat(:,4);
-table(sax, clarinet, trumpet, violin, 'RowNames', rownames)
+table(clarinet, sax, trumpet, violin, 'RowNames', rownames)
 
 % average accuracy
-mean(accuracy)
+meanAccuracy = mean(accuracy)
 
 %% Cosine similarity between instruments
 

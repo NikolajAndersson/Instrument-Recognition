@@ -1,0 +1,637 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>SMSAminiproject</title><meta name="generator" content="MATLAB 9.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-06-03"><meta name="DC.source" content="SMSAminiproject.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">Instrument classification</a></li><li><a href="#3">Clarinet</a></li><li><a href="#4">Trumpet</a></li><li><a href="#5">Violin</a></li><li><a href="#6">Build labels and dataset</a></li><li><a href="#7">dataset</a></li><li><a href="#10">Parametric and non-parametric classifier</a></li><li><a href="#15">Plot classifiers in 2D</a></li><li><a href="#17">Cosine similarity between instruments</a></li></ul></div><h2 id="1">Instrument classification</h2><pre class="codeinput">clear; clc; close <span class="string">all</span>;
+
+
+N = 2^13;
+hop = N/2;
+sr = 48000;
+
+filepathsax = <span class="string">'SMSAdata/sax/'</span>;
+filepathvio = <span class="string">'SMSAdata/violin/'</span>;
+filepathcla = <span class="string">'SMSAdata/clarinet/'</span>;
+filepathtru = <span class="string">'SMSAdata/trumpet/'</span>;
+
+pathname = dir(<span class="string">'Instrument-Recognition/SMSAdata/sax'</span>);
+
+fileIndex = find(~[pathname.isdir]);
+fileIndex = fileIndex(2:end);
+<span class="keyword">for</span> i = 1:length(fileIndex)
+
+    fileName(i,:) = pathname(fileIndex(i)).name;
+<span class="keyword">end</span>
+
+<span class="comment">% filter</span>
+T = triFilterBank(N, sr);
+coef = 13;
+dataAmount = 100;
+
+instrumentAmount = 4;
+</pre><img vspace="5" hspace="5" src="SMSAminiproject_01.png" alt=""> <pre class="codeinput">saxdata = [];
+saxID = <span class="string">'sax'</span>;
+figure; hold <span class="string">on</span>;
+<span class="keyword">for</span> i = 1:dataAmount
+    [s, ~] = audioread([filepathsax fileName(i, :)]);
+    mfcc = getMFCC(s, N, T, coef);
+    saxdata(i,:) = mfcc;
+    plot(saxdata(i,:))
+<span class="keyword">end</span>
+title(<span class="string">'Saxophone MFCC'</span>)
+ylabel(<span class="string">'Magnitude'</span>,<span class="string">'FontSize'</span>,14)
+xlabel(<span class="string">'Mel-Frequency Cepstrum-Coeffients'</span>,<span class="string">'FontSize'</span>,14)
+hold <span class="string">off</span>;
+</pre><img vspace="5" hspace="5" src="SMSAminiproject_02.png" alt=""> <h2 id="3">Clarinet</h2><pre class="codeinput">clarinetdata = [];
+claID = <span class="string">'cla'</span>;
+figure; hold <span class="string">on</span>;
+<span class="keyword">for</span> i = 1:dataAmount
+    [s, ~] = audioread([filepathcla fileName(i, :)]);
+    mfcc = getMFCC(s, N, T, coef);
+    clarinetdata(i,:) = [mfcc];
+    plot(clarinetdata(i,:))
+<span class="keyword">end</span>
+title(<span class="string">'Clarinet MFCC'</span>)
+ylabel(<span class="string">'Magnitude'</span>,<span class="string">'FontSize'</span>,14)
+xlabel(<span class="string">'Mel-Frequency Cepstrum-Coeffients'</span>,<span class="string">'FontSize'</span>,14)
+hold <span class="string">off</span>;
+</pre><img vspace="5" hspace="5" src="SMSAminiproject_03.png" alt=""> <h2 id="4">Trumpet</h2><pre class="codeinput">trumpetdata = [];
+truID = <span class="string">'tru'</span>;
+figure; hold <span class="string">on</span>;
+<span class="keyword">for</span> i = 1:dataAmount
+    [s, ~] = audioread([filepathtru fileName(i, :)]);
+    mfcc = getMFCC(s, N, T, coef);
+    trumpetdata(i,:) = [mfcc];
+    plot(trumpetdata(i,:))
+<span class="keyword">end</span>
+title(<span class="string">'Trumpet MFCC'</span>)
+ylabel(<span class="string">'Magnitude'</span>,<span class="string">'FontSize'</span>,14)
+xlabel(<span class="string">'Mel-Frequency Cepstrum-Coeffients'</span>,<span class="string">'FontSize'</span>,14)
+hold <span class="string">off</span>;
+</pre><img vspace="5" hspace="5" src="SMSAminiproject_04.png" alt=""> <h2 id="5">Violin</h2><pre class="codeinput">violindata = [];
+vioID = <span class="string">'vio'</span>;
+figure; hold <span class="string">on</span>;
+<span class="keyword">for</span> i = 1:dataAmount
+    [s, ~] = audioread([filepathvio fileName(i, :)]);
+    mfcc = getMFCC(s, N, T, coef);
+    violindata(i,:) = [mfcc];
+    plot(violindata(i,:))
+<span class="keyword">end</span>
+title(<span class="string">'Violin MFCC'</span>)
+ylabel(<span class="string">'Magnitude'</span>,<span class="string">'FontSize'</span>,14)
+xlabel(<span class="string">'Mel-Frequency Cepstrum-Coeffients'</span>,<span class="string">'FontSize'</span>,14)
+hold <span class="string">off</span>;
+</pre><img vspace="5" hspace="5" src="SMSAminiproject_05.png" alt=""> <h2 id="6">Build labels and dataset</h2><pre class="codeinput">labels = [];
+
+<span class="keyword">for</span> i = 1:dataAmount*instrumentAmount
+    <span class="keyword">if</span> i &lt; dataAmount+1
+        labels = [labels; saxID];
+    <span class="keyword">elseif</span> i &lt; dataAmount*2+1
+        labels = [labels; claID];
+    <span class="keyword">elseif</span> i &lt; dataAmount*3+1
+        labels = [labels; truID];
+    <span class="keyword">elseif</span> i &lt; dataAmount*4+1
+        labels = [labels; vioID];
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+<span class="comment">% Data X</span>
+X = [saxdata; clarinetdata; trumpetdata; violindata];
+</pre><h2 id="7">dataset</h2><pre class="codeinput">addpath(<span class="string">'Toolboxes/prtools'</span>)
+warning(<span class="string">'off'</span>,<span class="string">'all'</span>); prwarning(0); prwaitbar <span class="string">off</span>;
+z = prdataset(X, labels);
+</pre><pre class="codeinput">figure
+scatterd(z)
+title(<span class="string">'First 2 Mel-Frequency Cepstrum-Coeffients'</span>)
+</pre><img vspace="5" hspace="5" src="SMSAminiproject_06.png" alt=""> <pre class="codeinput"><span class="comment">% generate test and training indicies with respect to the class frequencies</span>
+part = cvpartition(labels,<span class="string">'HoldOut'</span>,0.1); <span class="comment">% data divided into 10% test and 90% traning</span>
+
+<span class="comment">% Make a training and testing pr data set</span>
+pr_X_tr = prdataset(X(part.training,:), labels(part.training));
+pr_X_tst = prdataset(X(part.test, :), labels(part.test));
+</pre><h2 id="10">Parametric and non-parametric classifier</h2><p>Train classifiers parametric classifiers</p><pre class="codeinput">pr_nmsc = nmsc(pr_X_tr); <span class="comment">% minimum distance classifier - nmsc</span>
+
+
+nmsc_w = pr_X_tst * pr_nmsc;
+[C_nmsc, r_nmsc] = confmat(nmsc_w);
+
+disp(<span class="string">'Confusion matrix for minimum distance classifier'</span>)
+confmat(nmsc_w)
+disp(<span class="string">'------------------------------------------------------------------'</span>)
+</pre><pre class="codeoutput">Confusion matrix for minimum distance classifier
+
+  True   | Estimated Labels
+  Labels |    c      s      t      v  | Totals
+ --------|----------------------------|-------
+  c      |    4      0      5      1  |   10
+  s      |    0      9      1      0  |   10
+  t      |    0      0     10      0  |   10
+  v      |    0      3      0      7  |   10
+ --------|----------------------------|-------
+  Totals |    4     12     16      8  |   40
+
+------------------------------------------------------------------
+</pre><pre class="codeinput">pr_ldc = ldc(pr_X_tr);   <span class="comment">% linear discriminant analysis - ldc</span>
+
+<span class="comment">% Linear Discriminant Analysis</span>
+ldc_w = pr_X_tst * pr_ldc;
+[C_ldc, r_ldc] = confmat(ldc_w);
+
+disp(<span class="string">'Confusion matrix for linear discriminant analysis classifier'</span>)
+confmat(ldc_w)
+disp(<span class="string">'------------------------------------------------------------------'</span>)
+</pre><pre class="codeoutput">Confusion matrix for linear discriminant analysis classifier
+
+  True   | Estimated Labels
+  Labels |    c      s      t      v  | Totals
+ --------|----------------------------|-------
+  c      |    9      0      0      1  |   10
+  s      |    0     10      0      0  |   10
+  t      |    0      0     10      0  |   10
+  v      |    0      1      0      9  |   10
+ --------|----------------------------|-------
+  Totals |    9     11     10     10  |   40
+
+------------------------------------------------------------------
+</pre><pre class="codeinput">pr_qdc = qdc(pr_X_tr);   <span class="comment">% quadratic discriminant analysis - qdc</span>
+
+<span class="comment">% Quadratic Discriminant Analysis</span>
+qdc_w = pr_X_tst * pr_qdc;
+[C_qdc, r_qdc] = confmat(qdc_w);
+disp(<span class="string">'Confusion matrix for quadratic discriminant analysis classifier'</span>)
+confmat(qdc_w)
+disp(<span class="string">'------------------------------------------------------------------'</span>)
+</pre><pre class="codeoutput">Confusion matrix for quadratic discriminant analysis classifier
+
+  True   | Estimated Labels
+  Labels |    c      s      t      v  | Totals
+ --------|----------------------------|-------
+  c      |   10      0      0      0  |   10
+  s      |    0     10      0      0  |   10
+  t      |    0      0     10      0  |   10
+  v      |    0      0      0     10  |   10
+ --------|----------------------------|-------
+  Totals |   10     10     10     10  |   40
+
+------------------------------------------------------------------
+</pre><p>non-parametric classifiers</p><pre class="codeinput">[pr_knn,nr_nn_used] = knnc(pr_X_tr);  <span class="comment">% k-nearest neighbor classifier - knnc</span>
+
+<span class="comment">% K-Nearest Neighbor</span>
+knn_w = pr_X_tst * pr_knn;
+[C_knn, r_knn] = confmat(knn_w);
+
+disp(<span class="string">'Confusion matrix for k-nearest neighbor classifier'</span>)
+confmat(knn_w)
+<span class="comment">% k-NN might be subject to overfitting if the number of neighbors is too low</span>
+<span class="comment">% The knnc classifier calculates the optimal amount of k</span>
+
+fprintf(<span class="string">'Number of k''s in k-nearest neighbors classifier: %1.f\n'</span>, nr_nn_used)
+disp(<span class="string">'------------------------------------------------------------------'</span>)
+</pre><pre class="codeoutput">Confusion matrix for k-nearest neighbor classifier
+
+  True   | Estimated Labels
+  Labels |    c      s      t      v  | Totals
+ --------|----------------------------|-------
+  c      |   10      0      0      0  |   10
+  s      |    0     10      0      0  |   10
+  t      |    0      0     10      0  |   10
+  v      |    0      0      0     10  |   10
+ --------|----------------------------|-------
+  Totals |   10     10     10     10  |   40
+
+Number of k's in k-nearest neighbors classifier: 1
+------------------------------------------------------------------
+</pre><p>Test the classifiers apply classifier on test data and calculate confusion matrix</p><pre class="codeinput"><span class="comment">% Table of classification errors</span>
+Data_Class_Accuracy = 100*[1-r_nmsc/part.TestSize; 1-r_ldc/part.TestSize; 1-r_qdc/part.TestSize; 1-r_knn/part.TestSize;];
+Classification_Errors = [r_nmsc; r_ldc; r_qdc; r_knn;];
+c_names = {<span class="string">'MDC'</span>; <span class="string">'LDA '</span>; <span class="string">'QDA '</span>; <span class="string">'k-NN '</span>;};
+disp(table(Classification_Errors, Data_Class_Accuracy, <span class="string">'RowNames'</span>,c_names))
+</pre><pre class="codeoutput">            Classification_Errors    Data_Class_Accuracy
+            _____________________    ___________________
+
+    MDC     10                        75                
+    LDA      2                        95                
+    QDA      0                       100                
+    k-NN     0                       100                
+
+</pre><h2 id="15">Plot classifiers in 2D</h2><pre class="codeinput">close <span class="string">all</span>;
+figure
+plot_feature = [1 2];
+plot_knn = knnc(z(:,plot_feature));  <span class="comment">% KNN</span>
+scatterd(z(:,plot_feature)); hold <span class="string">on</span>;
+plotc(plot_knn);
+title(<span class="string">'Scatter plot of KNN classifier'</span>)
+
+figure
+plot_ldc = ldc(z(:,plot_feature));   <span class="comment">% ldc</span>
+scatterd(z(:,plot_feature)); hold <span class="string">on</span>;
+plotc(plot_ldc)
+title(<span class="string">'Scatter plot of LDA classifier'</span>)
+
+figure
+plot_qdc = qdc(z(:,plot_feature));   <span class="comment">% qdc</span>
+scatterd(z(:,plot_feature)); hold <span class="string">on</span>;
+plotc(plot_qdc);
+title(<span class="string">'Scatter plot of QDC classifier'</span>)
+</pre><img vspace="5" hspace="5" src="SMSAminiproject_07.png" alt=""> <img vspace="5" hspace="5" src="SMSAminiproject_08.png" alt=""> <img vspace="5" hspace="5" src="SMSAminiproject_09.png" alt=""> <pre class="codeinput">close <span class="string">all</span>
+part = cvpartition(labels,<span class="string">'KFold'</span>,10); <span class="comment">% data divided into 10% test and 90% traning</span>
+cMat = [];
+
+<span class="keyword">for</span> i = 1:10
+    pr_X_tr = prdataset(X(part.training(i),:), labels(part.training(i)));
+    pr_X_tst = prdataset(X(part.test(i), :), labels(part.test(i)));
+    [pr_knn,nr_nn_used] = knnc(pr_X_tr,3);  <span class="comment">% k-nearest neighbor classifier - knnc</span>
+
+    <span class="comment">% K-Nearest Neighbor</span>
+    knn_w = pr_X_tst * pr_knn;
+    [C, ~] = confmat(knn_w);
+    <span class="keyword">if</span>(isempty(cMat))
+        cMat = C;
+    <span class="keyword">else</span>
+        <span class="keyword">for</span> j = 1:size(C,1)
+            <span class="keyword">for</span> p = 1:size(C,2)
+                cMat(j,p) = cMat(j,p) + C(j,p);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+    <span class="comment">% get accuracy, correct/Total</span>
+    accuracy(i,:) = sum(diag(C))/sum(sum(C));
+<span class="keyword">end</span>
+
+<span class="comment">% Average confusion matrix</span>
+rownames = {<span class="string">'clarinet'</span>; <span class="string">'sax'</span>; <span class="string">'trumpet'</span>; <span class="string">'violin'</span>};
+avgMat = (cMat/10)/10;
+
+clarinet = avgMat(:,1);
+sax = avgMat(:,2);
+trumpet = avgMat(:,3);
+violin = avgMat(:,4);
+table(clarinet, sax, trumpet, violin, <span class="string">'RowNames'</span>, rownames)
+
+<span class="comment">% average accuracy</span>
+meanAccuracy = mean(accuracy)
+</pre><pre class="codeoutput">
+ans =
+
+  4&times;4 table
+
+                clarinet    sax     trumpet    violin
+                ________    ____    _______    ______
+
+    clarinet    0.98        0.02       0          0  
+    sax         0.05        0.88    0.03       0.04  
+    trumpet        0           0       1          0  
+    violin         0           0       0          1  
+
+
+meanAccuracy =
+
+    0.9650
+
+</pre><h2 id="17">Cosine similarity between instruments</h2><pre class="codeinput">cosdist = @(x,y) x'*y/(norm(x)*norm(y));
+
+mSax = mean(saxdata',2);
+mClarinet = mean(clarinetdata',2);
+mTrumpet = mean(trumpetdata',2);
+mViolin = mean(violindata',2);
+
+<span class="comment">% [saxdata; clarinetdata; trumpetdata; violindata];</span>
+comparison = [cosdist(mSax,mSax) cosdist(mSax,mClarinet) cosdist(mSax,mTrumpet) cosdist(mSax,mViolin); <span class="keyword">...</span>
+    cosdist(mClarinet, mSax),  cosdist(mClarinet, mClarinet)  cosdist(mClarinet, mTrumpet)  cosdist(mClarinet, mViolin); <span class="keyword">...</span>
+    cosdist(mTrumpet, mSax) cosdist(mTrumpet, mClarinet)  cosdist(mTrumpet, mTrumpet)  cosdist(mTrumpet, mViolin); <span class="keyword">...</span>
+    cosdist(mViolin, mSax) cosdist(mViolin, mClarinet)  cosdist(mViolin, mTrumpet)  cosdist(mViolin, mViolin)];
+
+imagesc(comparison)
+colorbar
+</pre><img vspace="5" hspace="5" src="SMSAminiproject_10.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2017a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Instrument classification
+
+clear; clc; close all;
+
+
+N = 2^13;
+hop = N/2;
+sr = 48000;
+
+filepathsax = 'SMSAdata/sax/';
+filepathvio = 'SMSAdata/violin/';
+filepathcla = 'SMSAdata/clarinet/';
+filepathtru = 'SMSAdata/trumpet/';
+
+pathname = dir('Instrument-Recognition/SMSAdata/sax');
+
+fileIndex = find(~[pathname.isdir]);
+fileIndex = fileIndex(2:end);
+for i = 1:length(fileIndex)
+    
+    fileName(i,:) = pathname(fileIndex(i)).name;
+end
+
+% filter
+T = triFilterBank(N, sr);
+coef = 13;
+dataAmount = 100;
+
+instrumentAmount = 4;
+%%
+saxdata = [];
+saxID = 'sax';
+figure; hold on;
+for i = 1:dataAmount
+    [s, ~] = audioread([filepathsax fileName(i, :)]);
+    mfcc = getMFCC(s, N, T, coef);
+    saxdata(i,:) = mfcc;
+    plot(saxdata(i,:))
+end
+title('Saxophone MFCC')
+ylabel('Magnitude','FontSize',14)
+xlabel('Mel-Frequency Cepstrum-Coeffients','FontSize',14)
+hold off;
+%% Clarinet
+clarinetdata = [];
+claID = 'cla';
+figure; hold on;
+for i = 1:dataAmount
+    [s, ~] = audioread([filepathcla fileName(i, :)]);
+    mfcc = getMFCC(s, N, T, coef);
+    clarinetdata(i,:) = [mfcc];
+    plot(clarinetdata(i,:))
+end
+title('Clarinet MFCC')
+ylabel('Magnitude','FontSize',14)
+xlabel('Mel-Frequency Cepstrum-Coeffients','FontSize',14)
+hold off;
+%% Trumpet
+trumpetdata = [];
+truID = 'tru';
+figure; hold on;
+for i = 1:dataAmount
+    [s, ~] = audioread([filepathtru fileName(i, :)]);
+    mfcc = getMFCC(s, N, T, coef);
+    trumpetdata(i,:) = [mfcc];
+    plot(trumpetdata(i,:))
+end
+title('Trumpet MFCC')
+ylabel('Magnitude','FontSize',14)
+xlabel('Mel-Frequency Cepstrum-Coeffients','FontSize',14)
+hold off;
+%% Violin
+violindata = [];
+vioID = 'vio';
+figure; hold on;
+for i = 1:dataAmount
+    [s, ~] = audioread([filepathvio fileName(i, :)]);
+    mfcc = getMFCC(s, N, T, coef);
+    violindata(i,:) = [mfcc];
+    plot(violindata(i,:))
+end
+title('Violin MFCC')
+ylabel('Magnitude','FontSize',14)
+xlabel('Mel-Frequency Cepstrum-Coeffients','FontSize',14)
+hold off;
+%% Build labels and dataset
+labels = [];
+
+for i = 1:dataAmount*instrumentAmount
+    if i < dataAmount+1
+        labels = [labels; saxID];
+    elseif i < dataAmount*2+1
+        labels = [labels; claID];
+    elseif i < dataAmount*3+1
+        labels = [labels; truID];
+    elseif i < dataAmount*4+1
+        labels = [labels; vioID];
+    end
+end
+
+% Data X
+X = [saxdata; clarinetdata; trumpetdata; violindata];
+%% dataset
+addpath('Toolboxes/prtools')
+warning('off','all'); prwarning(0); prwaitbar off;
+z = prdataset(X, labels);
+
+%%
+figure
+scatterd(z)
+title('First 2 Mel-Frequency Cepstrum-Coeffients')
+
+%%
+
+% generate test and training indicies with respect to the class frequencies
+part = cvpartition(labels,'HoldOut',0.1); % data divided into 10% test and 90% traning
+
+% Make a training and testing pr data set
+pr_X_tr = prdataset(X(part.training,:), labels(part.training));
+pr_X_tst = prdataset(X(part.test, :), labels(part.test));
+
+%% Parametric and non-parametric classifier
+% Train classifiers
+% parametric classifiers
+pr_nmsc = nmsc(pr_X_tr); % minimum distance classifier - nmsc
+
+
+nmsc_w = pr_X_tst * pr_nmsc;
+[C_nmsc, r_nmsc] = confmat(nmsc_w);
+
+disp('Confusion matrix for minimum distance classifier')
+confmat(nmsc_w)
+disp('REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH')
+
+%%
+
+pr_ldc = ldc(pr_X_tr);   % linear discriminant analysis - ldc
+
+% Linear Discriminant Analysis
+ldc_w = pr_X_tst * pr_ldc;
+[C_ldc, r_ldc] = confmat(ldc_w);
+
+disp('Confusion matrix for linear discriminant analysis classifier')
+confmat(ldc_w)
+disp('REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH')
+
+
+%%
+
+pr_qdc = qdc(pr_X_tr);   % quadratic discriminant analysis - qdc
+
+% Quadratic Discriminant Analysis
+qdc_w = pr_X_tst * pr_qdc;
+[C_qdc, r_qdc] = confmat(qdc_w);
+disp('Confusion matrix for quadratic discriminant analysis classifier')
+confmat(qdc_w)
+disp('REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH')
+
+%%
+% non-parametric classifiers
+[pr_knn,nr_nn_used] = knnc(pr_X_tr);  % k-nearest neighbor classifier - knnc
+
+% K-Nearest Neighbor
+knn_w = pr_X_tst * pr_knn;
+[C_knn, r_knn] = confmat(knn_w);
+
+disp('Confusion matrix for k-nearest neighbor classifier')
+confmat(knn_w)
+% k-NN might be subject to overfitting if the number of neighbors is too low
+% The knnc classifier calculates the optimal amount of k
+
+fprintf('Number of k''s in k-nearest neighbors classifier: %1.f\n', nr_nn_used)
+disp('REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH')
+
+
+%%
+% Test the classifiers
+% apply classifier on test data and calculate confusion matrix
+
+% Table of classification errors
+Data_Class_Accuracy = 100*[1-r_nmsc/part.TestSize; 1-r_ldc/part.TestSize; 1-r_qdc/part.TestSize; 1-r_knn/part.TestSize;];
+Classification_Errors = [r_nmsc; r_ldc; r_qdc; r_knn;];
+c_names = {'MDC'; 'LDA '; 'QDA '; 'k-NN ';};
+disp(table(Classification_Errors, Data_Class_Accuracy, 'RowNames',c_names))
+
+
+%% Plot classifiers in 2D
+close all;
+figure
+plot_feature = [1 2];
+plot_knn = knnc(z(:,plot_feature));  % KNN
+scatterd(z(:,plot_feature)); hold on;
+plotc(plot_knn);
+title('Scatter plot of KNN classifier')
+
+figure
+plot_ldc = ldc(z(:,plot_feature));   % ldc
+scatterd(z(:,plot_feature)); hold on;
+plotc(plot_ldc)
+title('Scatter plot of LDA classifier')
+
+figure
+plot_qdc = qdc(z(:,plot_feature));   % qdc
+scatterd(z(:,plot_feature)); hold on;
+plotc(plot_qdc);
+title('Scatter plot of QDC classifier')
+
+
+%%
+close all
+part = cvpartition(labels,'KFold',10); % data divided into 10% test and 90% traning
+cMat = [];
+
+for i = 1:10
+    pr_X_tr = prdataset(X(part.training(i),:), labels(part.training(i)));
+    pr_X_tst = prdataset(X(part.test(i), :), labels(part.test(i)));
+    [pr_knn,nr_nn_used] = knnc(pr_X_tr,3);  % k-nearest neighbor classifier - knnc
+    
+    % K-Nearest Neighbor
+    knn_w = pr_X_tst * pr_knn;
+    [C, ~] = confmat(knn_w);
+    if(isempty(cMat))
+        cMat = C;
+    else
+        for j = 1:size(C,1)
+            for p = 1:size(C,2)
+                cMat(j,p) = cMat(j,p) + C(j,p);
+            end
+        end
+    end
+    % get accuracy, correct/Total
+    accuracy(i,:) = sum(diag(C))/sum(sum(C));   
+end
+
+% Average confusion matrix
+rownames = {'clarinet'; 'sax'; 'trumpet'; 'violin'};
+avgMat = (cMat/10)/10;
+
+clarinet = avgMat(:,1);
+sax = avgMat(:,2);
+trumpet = avgMat(:,3);
+violin = avgMat(:,4);
+table(clarinet, sax, trumpet, violin, 'RowNames', rownames)
+
+% average accuracy
+meanAccuracy = mean(accuracy)
+
+%% Cosine similarity between instruments
+
+cosdist = @(x,y) x'*y/(norm(x)*norm(y));
+
+mSax = mean(saxdata',2);
+mClarinet = mean(clarinetdata',2);
+mTrumpet = mean(trumpetdata',2);
+mViolin = mean(violindata',2);
+
+% [saxdata; clarinetdata; trumpetdata; violindata];
+comparison = [cosdist(mSax,mSax) cosdist(mSax,mClarinet) cosdist(mSax,mTrumpet) cosdist(mSax,mViolin); ...
+    cosdist(mClarinet, mSax),  cosdist(mClarinet, mClarinet)  cosdist(mClarinet, mTrumpet)  cosdist(mClarinet, mViolin); ...
+    cosdist(mTrumpet, mSax) cosdist(mTrumpet, mClarinet)  cosdist(mTrumpet, mTrumpet)  cosdist(mTrumpet, mViolin); ...
+    cosdist(mViolin, mSax) cosdist(mViolin, mClarinet)  cosdist(mViolin, mTrumpet)  cosdist(mViolin, mViolin)];
+
+imagesc(comparison)
+colorbar
+##### SOURCE END #####
+--></body></html>
