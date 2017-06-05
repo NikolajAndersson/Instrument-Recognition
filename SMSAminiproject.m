@@ -1,9 +1,11 @@
 %% Instrument classification
-
+% I want to see how well instruments are recognitized by using the MFCC
+% Classification of saxophone, clarinet, trumpet and violin.
+%
+% Setup with window size, hop size, and file paths
 clear; clc; close all;
 
-
-N = 2^13;
+N = 2^10;
 hop = N/2;
 sr = 48000;
 
@@ -21,13 +23,13 @@ for i = 1:length(fileIndex)
     fileName(i,:) = pathname(fileIndex(i)).name;
 end
 
-% filter
+% Store triangular filter in T
 T = triFilterBank(N, sr);
 coef = 13;
 dataAmount = 100;
-
 instrumentAmount = 4;
-%%
+%% Saxophone
+% get MFCC from the sound files and store them in saxdata
 saxdata = [];
 saxID = 'sax';
 figure; hold on;
@@ -37,11 +39,12 @@ for i = 1:dataAmount
     saxdata(i,:) = mfcc;
     plot(saxdata(i,:))
 end
-title('Saxophone MFCC')
+title('Saxophone MFCC','FontSize',18)
 ylabel('Magnitude','FontSize',14)
 xlabel('Mel-Frequency Cepstrum-Coeffients','FontSize',14)
 hold off;
 %% Clarinet
+% get MFCC from the sound files and store them in clarinetdata
 clarinetdata = [];
 claID = 'cla';
 figure; hold on;
@@ -51,11 +54,12 @@ for i = 1:dataAmount
     clarinetdata(i,:) = [mfcc];
     plot(clarinetdata(i,:))
 end
-title('Clarinet MFCC')
+title('Clarinet MFCC','FontSize',18)
 ylabel('Magnitude','FontSize',14)
 xlabel('Mel-Frequency Cepstrum-Coeffients','FontSize',14)
 hold off;
 %% Trumpet
+% get MFCC from the sound files and store them in trumpetdata
 trumpetdata = [];
 truID = 'tru';
 figure; hold on;
@@ -65,11 +69,12 @@ for i = 1:dataAmount
     trumpetdata(i,:) = [mfcc];
     plot(trumpetdata(i,:))
 end
-title('Trumpet MFCC')
+title('Trumpet MFCC','FontSize',18)
 ylabel('Magnitude','FontSize',14)
 xlabel('Mel-Frequency Cepstrum-Coeffients','FontSize',14)
 hold off;
 %% Violin
+% get MFCC from the sound files and store them in violindata
 violindata = [];
 vioID = 'vio';
 figure; hold on;
@@ -79,7 +84,7 @@ for i = 1:dataAmount
     violindata(i,:) = [mfcc];
     plot(violindata(i,:))
 end
-title('Violin MFCC')
+title('Violin MFCC','FontSize',18)
 ylabel('Magnitude','FontSize',14)
 xlabel('Mel-Frequency Cepstrum-Coeffients','FontSize',14)
 hold off;
@@ -100,7 +105,7 @@ end
 
 % Data X
 X = [saxdata; clarinetdata; trumpetdata; violindata];
-%% dataset
+%% PRTOOLS
 addpath('Toolboxes/prtools')
 warning('off','all'); prwarning(0); prwaitbar off;
 z = prdataset(X, labels);
@@ -108,9 +113,9 @@ z = prdataset(X, labels);
 %%
 figure
 scatterd(z)
-title('First 2 Mel-Frequency Cepstrum-Coeffients')
+title('First 2 Mel-Frequency Cepstrum-Coeffients','FontSize',18)
 
-%%
+%% Classification
 
 % generate test and training indicies with respect to the class frequencies
 part = cvpartition(labels,'HoldOut',0.1); % data divided into 10% test and 90% traning
@@ -119,7 +124,7 @@ part = cvpartition(labels,'HoldOut',0.1); % data divided into 10% test and 90% t
 pr_X_tr = prdataset(X(part.training,:), labels(part.training));
 pr_X_tst = prdataset(X(part.test, :), labels(part.test));
 
-%% Parametric and non-parametric classifier
+%%
 % Train classifiers
 % parametric classifiers
 pr_nmsc = nmsc(pr_X_tr); % minimum distance classifier - nmsc
@@ -173,7 +178,7 @@ fprintf('Number of k''s in k-nearest neighbors classifier: %1.f\n', nr_nn_used)
 disp('------------------------------------------------------------------')
 
 
-%%
+%% Accuracy of Classifiers
 % Test the classifiers
 % apply classifier on test data and calculate confusion matrix
 
@@ -206,7 +211,7 @@ plotc(plot_qdc);
 title('Scatter plot of QDC classifier')
 
 
-%%
+%% Cross-validation with KNN
 close all
 part = cvpartition(labels,'KFold',10); % data divided into 10% test and 90% traning
 cMat = [];
@@ -229,7 +234,7 @@ for i = 1:10
         end
     end
     % get accuracy, correct/Total
-    accuracy(i,:) = sum(diag(C))/sum(sum(C));   
+    accuracy(i,:) = sum(diag(C))/sum(sum(C));
 end
 
 % Average confusion matrix
@@ -254,11 +259,14 @@ mClarinet = mean(clarinetdata',2);
 mTrumpet = mean(trumpetdata',2);
 mViolin = mean(violindata',2);
 
-% [saxdata; clarinetdata; trumpetdata; violindata];
-comparison = [cosdist(mSax,mSax) cosdist(mSax,mClarinet) cosdist(mSax,mTrumpet) cosdist(mSax,mViolin); ...
-    cosdist(mClarinet, mSax),  cosdist(mClarinet, mClarinet)  cosdist(mClarinet, mTrumpet)  cosdist(mClarinet, mViolin); ...
-    cosdist(mTrumpet, mSax) cosdist(mTrumpet, mClarinet)  cosdist(mTrumpet, mTrumpet)  cosdist(mTrumpet, mViolin); ...
-    cosdist(mViolin, mSax) cosdist(mViolin, mClarinet)  cosdist(mViolin, mTrumpet)  cosdist(mViolin, mViolin)];
+% [clarinetdata; saxdata;  trumpetdata; violindata];
+comparison = [cosdist(mClarinet, mClarinet),  cosdist(mClarinet, mSax)  cosdist(mClarinet, mTrumpet)  cosdist(mClarinet, mViolin); ...
+    cosdist(mSax,mClarinet) cosdist(mSax,mSax) cosdist(mSax,mTrumpet) cosdist(mSax,mViolin); ...
+    cosdist(mTrumpet, mClarinet) cosdist(mTrumpet, mSax)  cosdist(mTrumpet, mTrumpet)  cosdist(mTrumpet, mViolin); ...
+    cosdist(mViolin, mClarinet) cosdist(mViolin, mSax)  cosdist(mViolin, mTrumpet)  cosdist(mViolin, mViolin)];
 
 imagesc(comparison)
+set(gca,'XTick',[1 2 3 4],'XTickLabel',{ 'Clarinet','Saxophone', 'Trumpet','Violin'})
+set(gca,'YTick',[1 2 3 4],'YTickLabel',{ 'Clarinet', 'Saxophone','Trumpet','Violin'})
+title('Cosine Distance Between Instruments', 'FontSize',18)
 colorbar

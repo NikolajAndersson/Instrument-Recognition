@@ -6,7 +6,7 @@
    <!--
 This HTML was auto-generated from MATLAB code.
 To make changes, update the MATLAB code and republish this document.
-      --><title>SMSAminiproject</title><meta name="generator" content="MATLAB 9.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-06-03"><meta name="DC.source" content="SMSAminiproject.m"><style type="text/css">
+      --><title>SMSAminiproject</title><meta name="generator" content="MATLAB 9.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2017-06-04"><meta name="DC.source" content="SMSAminiproject.m"><style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
 
 html { min-height:100%; margin-bottom:1px; }
@@ -66,10 +66,9 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 
 
 
-  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">Instrument classification</a></li><li><a href="#3">Clarinet</a></li><li><a href="#4">Trumpet</a></li><li><a href="#5">Violin</a></li><li><a href="#6">Build labels and dataset</a></li><li><a href="#7">dataset</a></li><li><a href="#10">Parametric and non-parametric classifier</a></li><li><a href="#15">Plot classifiers in 2D</a></li><li><a href="#17">Cosine similarity between instruments</a></li></ul></div><h2 id="1">Instrument classification</h2><pre class="codeinput">clear; clc; close <span class="string">all</span>;
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">Instrument classification</a></li><li><a href="#2">Saxophone</a></li><li><a href="#3">Clarinet</a></li><li><a href="#4">Trumpet</a></li><li><a href="#5">Violin</a></li><li><a href="#6">Build labels and dataset</a></li><li><a href="#7">PRTOOLS</a></li><li><a href="#9">Classification</a></li><li><a href="#14">Accuracy of Classifiers</a></li><li><a href="#15">Plot classifiers in 2D</a></li><li><a href="#16">Cross-validation with KNN</a></li><li><a href="#17">Cosine similarity between instruments</a></li></ul></div><h2 id="1">Instrument classification</h2><p>I want to see how well instruments are recognitized by using the MFCC Classification of saxophone, clarinet, trumpet and violin.</p><p>Setup with window size, hop size, and file paths</p><pre class="codeinput">clear; clc; close <span class="string">all</span>;
 
-
-N = 2^13;
+N = 2^10;
 hop = N/2;
 sr = 48000;
 
@@ -87,13 +86,12 @@ fileIndex = fileIndex(2:end);
     fileName(i,:) = pathname(fileIndex(i)).name;
 <span class="keyword">end</span>
 
-<span class="comment">% filter</span>
+<span class="comment">% Store triangular filter in T</span>
 T = triFilterBank(N, sr);
 coef = 13;
 dataAmount = 100;
-
 instrumentAmount = 4;
-</pre><img vspace="5" hspace="5" src="SMSAminiproject_01.png" alt=""> <pre class="codeinput">saxdata = [];
+</pre><img vspace="5" hspace="5" src="SMSAminiproject_01.png" alt=""> <h2 id="2">Saxophone</h2><p>get MFCC from the sound files and store them in saxdata</p><pre class="codeinput">saxdata = [];
 saxID = <span class="string">'sax'</span>;
 figure; hold <span class="string">on</span>;
 <span class="keyword">for</span> i = 1:dataAmount
@@ -102,11 +100,11 @@ figure; hold <span class="string">on</span>;
     saxdata(i,:) = mfcc;
     plot(saxdata(i,:))
 <span class="keyword">end</span>
-title(<span class="string">'Saxophone MFCC'</span>)
+title(<span class="string">'Saxophone MFCC'</span>,<span class="string">'FontSize'</span>,18)
 ylabel(<span class="string">'Magnitude'</span>,<span class="string">'FontSize'</span>,14)
 xlabel(<span class="string">'Mel-Frequency Cepstrum-Coeffients'</span>,<span class="string">'FontSize'</span>,14)
 hold <span class="string">off</span>;
-</pre><img vspace="5" hspace="5" src="SMSAminiproject_02.png" alt=""> <h2 id="3">Clarinet</h2><pre class="codeinput">clarinetdata = [];
+</pre><img vspace="5" hspace="5" src="SMSAminiproject_02.png" alt=""> <h2 id="3">Clarinet</h2><p>get MFCC from the sound files and store them in clarinetdata</p><pre class="codeinput">clarinetdata = [];
 claID = <span class="string">'cla'</span>;
 figure; hold <span class="string">on</span>;
 <span class="keyword">for</span> i = 1:dataAmount
@@ -115,11 +113,11 @@ figure; hold <span class="string">on</span>;
     clarinetdata(i,:) = [mfcc];
     plot(clarinetdata(i,:))
 <span class="keyword">end</span>
-title(<span class="string">'Clarinet MFCC'</span>)
+title(<span class="string">'Clarinet MFCC'</span>,<span class="string">'FontSize'</span>,18)
 ylabel(<span class="string">'Magnitude'</span>,<span class="string">'FontSize'</span>,14)
 xlabel(<span class="string">'Mel-Frequency Cepstrum-Coeffients'</span>,<span class="string">'FontSize'</span>,14)
 hold <span class="string">off</span>;
-</pre><img vspace="5" hspace="5" src="SMSAminiproject_03.png" alt=""> <h2 id="4">Trumpet</h2><pre class="codeinput">trumpetdata = [];
+</pre><img vspace="5" hspace="5" src="SMSAminiproject_03.png" alt=""> <h2 id="4">Trumpet</h2><p>get MFCC from the sound files and store them in trumpetdata</p><pre class="codeinput">trumpetdata = [];
 truID = <span class="string">'tru'</span>;
 figure; hold <span class="string">on</span>;
 <span class="keyword">for</span> i = 1:dataAmount
@@ -128,11 +126,11 @@ figure; hold <span class="string">on</span>;
     trumpetdata(i,:) = [mfcc];
     plot(trumpetdata(i,:))
 <span class="keyword">end</span>
-title(<span class="string">'Trumpet MFCC'</span>)
+title(<span class="string">'Trumpet MFCC'</span>,<span class="string">'FontSize'</span>,18)
 ylabel(<span class="string">'Magnitude'</span>,<span class="string">'FontSize'</span>,14)
 xlabel(<span class="string">'Mel-Frequency Cepstrum-Coeffients'</span>,<span class="string">'FontSize'</span>,14)
 hold <span class="string">off</span>;
-</pre><img vspace="5" hspace="5" src="SMSAminiproject_04.png" alt=""> <h2 id="5">Violin</h2><pre class="codeinput">violindata = [];
+</pre><img vspace="5" hspace="5" src="SMSAminiproject_04.png" alt=""> <h2 id="5">Violin</h2><p>get MFCC from the sound files and store them in violindata</p><pre class="codeinput">violindata = [];
 vioID = <span class="string">'vio'</span>;
 figure; hold <span class="string">on</span>;
 <span class="keyword">for</span> i = 1:dataAmount
@@ -141,7 +139,7 @@ figure; hold <span class="string">on</span>;
     violindata(i,:) = [mfcc];
     plot(violindata(i,:))
 <span class="keyword">end</span>
-title(<span class="string">'Violin MFCC'</span>)
+title(<span class="string">'Violin MFCC'</span>,<span class="string">'FontSize'</span>,18)
 ylabel(<span class="string">'Magnitude'</span>,<span class="string">'FontSize'</span>,14)
 xlabel(<span class="string">'Mel-Frequency Cepstrum-Coeffients'</span>,<span class="string">'FontSize'</span>,14)
 hold <span class="string">off</span>;
@@ -161,19 +159,19 @@ hold <span class="string">off</span>;
 
 <span class="comment">% Data X</span>
 X = [saxdata; clarinetdata; trumpetdata; violindata];
-</pre><h2 id="7">dataset</h2><pre class="codeinput">addpath(<span class="string">'Toolboxes/prtools'</span>)
+</pre><h2 id="7">PRTOOLS</h2><pre class="codeinput">addpath(<span class="string">'Toolboxes/prtools'</span>)
 warning(<span class="string">'off'</span>,<span class="string">'all'</span>); prwarning(0); prwaitbar <span class="string">off</span>;
 z = prdataset(X, labels);
 </pre><pre class="codeinput">figure
 scatterd(z)
-title(<span class="string">'First 2 Mel-Frequency Cepstrum-Coeffients'</span>)
-</pre><img vspace="5" hspace="5" src="SMSAminiproject_06.png" alt=""> <pre class="codeinput"><span class="comment">% generate test and training indicies with respect to the class frequencies</span>
+title(<span class="string">'First 2 Mel-Frequency Cepstrum-Coeffients'</span>,<span class="string">'FontSize'</span>,18)
+</pre><img vspace="5" hspace="5" src="SMSAminiproject_06.png" alt=""> <h2 id="9">Classification</h2><pre class="codeinput"><span class="comment">% generate test and training indicies with respect to the class frequencies</span>
 part = cvpartition(labels,<span class="string">'HoldOut'</span>,0.1); <span class="comment">% data divided into 10% test and 90% traning</span>
 
 <span class="comment">% Make a training and testing pr data set</span>
 pr_X_tr = prdataset(X(part.training,:), labels(part.training));
 pr_X_tst = prdataset(X(part.test, :), labels(part.test));
-</pre><h2 id="10">Parametric and non-parametric classifier</h2><p>Train classifiers parametric classifiers</p><pre class="codeinput">pr_nmsc = nmsc(pr_X_tr); <span class="comment">% minimum distance classifier - nmsc</span>
+</pre><p>Train classifiers parametric classifiers</p><pre class="codeinput">pr_nmsc = nmsc(pr_X_tr); <span class="comment">% minimum distance classifier - nmsc</span>
 
 
 nmsc_w = pr_X_tst * pr_nmsc;
@@ -187,12 +185,12 @@ disp(<span class="string">'-----------------------------------------------------
   True   | Estimated Labels
   Labels |    c      s      t      v  | Totals
  --------|----------------------------|-------
-  c      |    4      0      5      1  |   10
-  s      |    0      9      1      0  |   10
+  c      |    3      1      5      1  |   10
+  s      |    0      4      4      2  |   10
   t      |    0      0     10      0  |   10
-  v      |    0      3      0      7  |   10
+  v      |    2      1      0      7  |   10
  --------|----------------------------|-------
-  Totals |    4     12     16      8  |   40
+  Totals |    5      6     19     10  |   40
 
 ------------------------------------------------------------------
 </pre><pre class="codeinput">pr_ldc = ldc(pr_X_tr);   <span class="comment">% linear discriminant analysis - ldc</span>
@@ -209,12 +207,12 @@ disp(<span class="string">'-----------------------------------------------------
   True   | Estimated Labels
   Labels |    c      s      t      v  | Totals
  --------|----------------------------|-------
-  c      |    9      0      0      1  |   10
+  c      |   10      0      0      0  |   10
   s      |    0     10      0      0  |   10
   t      |    0      0     10      0  |   10
-  v      |    0      1      0      9  |   10
+  v      |    1      0      0      9  |   10
  --------|----------------------------|-------
-  Totals |    9     11     10     10  |   40
+  Totals |   11     10     10      9  |   40
 
 ------------------------------------------------------------------
 </pre><pre class="codeinput">pr_qdc = qdc(pr_X_tr);   <span class="comment">% quadratic discriminant analysis - qdc</span>
@@ -257,15 +255,15 @@ disp(<span class="string">'-----------------------------------------------------
   Labels |    c      s      t      v  | Totals
  --------|----------------------------|-------
   c      |   10      0      0      0  |   10
-  s      |    0     10      0      0  |   10
+  s      |    0      9      0      1  |   10
   t      |    0      0     10      0  |   10
   v      |    0      0      0     10  |   10
  --------|----------------------------|-------
-  Totals |   10     10     10     10  |   40
+  Totals |   10      9     10     11  |   40
 
 Number of k's in k-nearest neighbors classifier: 1
 ------------------------------------------------------------------
-</pre><p>Test the classifiers apply classifier on test data and calculate confusion matrix</p><pre class="codeinput"><span class="comment">% Table of classification errors</span>
+</pre><h2 id="14">Accuracy of Classifiers</h2><p>Test the classifiers apply classifier on test data and calculate confusion matrix</p><pre class="codeinput"><span class="comment">% Table of classification errors</span>
 Data_Class_Accuracy = 100*[1-r_nmsc/part.TestSize; 1-r_ldc/part.TestSize; 1-r_qdc/part.TestSize; 1-r_knn/part.TestSize;];
 Classification_Errors = [r_nmsc; r_ldc; r_qdc; r_knn;];
 c_names = {<span class="string">'MDC'</span>; <span class="string">'LDA '</span>; <span class="string">'QDA '</span>; <span class="string">'k-NN '</span>;};
@@ -273,10 +271,10 @@ disp(table(Classification_Errors, Data_Class_Accuracy, <span class="string">'Row
 </pre><pre class="codeoutput">            Classification_Errors    Data_Class_Accuracy
             _____________________    ___________________
 
-    MDC     10                        75                
-    LDA      2                        95                
-    QDA      0                       100                
-    k-NN     0                       100                
+    MDC     16                         60               
+    LDA      1                       97.5               
+    QDA      0                        100               
+    k-NN     1                       97.5               
 
 </pre><h2 id="15">Plot classifiers in 2D</h2><pre class="codeinput">close <span class="string">all</span>;
 figure
@@ -297,7 +295,7 @@ plot_qdc = qdc(z(:,plot_feature));   <span class="comment">% qdc</span>
 scatterd(z(:,plot_feature)); hold <span class="string">on</span>;
 plotc(plot_qdc);
 title(<span class="string">'Scatter plot of QDC classifier'</span>)
-</pre><img vspace="5" hspace="5" src="SMSAminiproject_07.png" alt=""> <img vspace="5" hspace="5" src="SMSAminiproject_08.png" alt=""> <img vspace="5" hspace="5" src="SMSAminiproject_09.png" alt=""> <pre class="codeinput">close <span class="string">all</span>
+</pre><img vspace="5" hspace="5" src="SMSAminiproject_07.png" alt=""> <img vspace="5" hspace="5" src="SMSAminiproject_08.png" alt=""> <img vspace="5" hspace="5" src="SMSAminiproject_09.png" alt=""> <h2 id="16">Cross-validation with KNN</h2><pre class="codeinput">close <span class="string">all</span>
 part = cvpartition(labels,<span class="string">'KFold'</span>,10); <span class="comment">% data divided into 10% test and 90% traning</span>
 cMat = [];
 
@@ -342,15 +340,15 @@ ans =
                 clarinet    sax     trumpet    violin
                 ________    ____    _______    ______
 
-    clarinet    0.98        0.02       0          0  
-    sax         0.05        0.88    0.03       0.04  
+    clarinet    0.99        0.01       0          0  
+    sax         0.05        0.91    0.02       0.02  
     trumpet        0           0       1          0  
-    violin         0           0       0          1  
+    violin      0.02           0    0.01       0.97  
 
 
 meanAccuracy =
 
-    0.9650
+    0.9675
 
 </pre><h2 id="17">Cosine similarity between instruments</h2><pre class="codeinput">cosdist = @(x,y) x'*y/(norm(x)*norm(y));
 
@@ -366,15 +364,20 @@ comparison = [cosdist(mSax,mSax) cosdist(mSax,mClarinet) cosdist(mSax,mTrumpet) 
     cosdist(mViolin, mSax) cosdist(mViolin, mClarinet)  cosdist(mViolin, mTrumpet)  cosdist(mViolin, mViolin)];
 
 imagesc(comparison)
+set(gca,<span class="string">'XTick'</span>,[1 2 3 4],<span class="string">'XTickLabel'</span>,{<span class="string">'Saxophone'</span>, <span class="string">'Clarinet'</span>, <span class="string">'Trumpet'</span>,<span class="string">'Violin'</span>})
+set(gca,<span class="string">'YTick'</span>,[1 2 3 4],<span class="string">'YTickLabel'</span>,{<span class="string">'Saxophone'</span>, <span class="string">'Clarinet'</span>, <span class="string">'Trumpet'</span>,<span class="string">'Violin'</span>})
+title(<span class="string">'Cosine Distance Between Instruments'</span>, <span class="string">'FontSize'</span>,18)
 colorbar
 </pre><img vspace="5" hspace="5" src="SMSAminiproject_10.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2017a</a><br></p></div><!--
 ##### SOURCE BEGIN #####
 %% Instrument classification
-
+% I want to see how well instruments are recognitized by using the MFCC
+% Classification of saxophone, clarinet, trumpet and violin.
+%
+% Setup with window size, hop size, and file paths
 clear; clc; close all;
 
-
-N = 2^13;
+N = 2^10;
 hop = N/2;
 sr = 48000;
 
@@ -392,13 +395,13 @@ for i = 1:length(fileIndex)
     fileName(i,:) = pathname(fileIndex(i)).name;
 end
 
-% filter
+% Store triangular filter in T
 T = triFilterBank(N, sr);
 coef = 13;
 dataAmount = 100;
-
 instrumentAmount = 4;
-%%
+%% Saxophone
+% get MFCC from the sound files and store them in saxdata
 saxdata = [];
 saxID = 'sax';
 figure; hold on;
@@ -408,11 +411,12 @@ for i = 1:dataAmount
     saxdata(i,:) = mfcc;
     plot(saxdata(i,:))
 end
-title('Saxophone MFCC')
+title('Saxophone MFCC','FontSize',18)
 ylabel('Magnitude','FontSize',14)
 xlabel('Mel-Frequency Cepstrum-Coeffients','FontSize',14)
 hold off;
 %% Clarinet
+% get MFCC from the sound files and store them in clarinetdata
 clarinetdata = [];
 claID = 'cla';
 figure; hold on;
@@ -422,11 +426,12 @@ for i = 1:dataAmount
     clarinetdata(i,:) = [mfcc];
     plot(clarinetdata(i,:))
 end
-title('Clarinet MFCC')
+title('Clarinet MFCC','FontSize',18)
 ylabel('Magnitude','FontSize',14)
 xlabel('Mel-Frequency Cepstrum-Coeffients','FontSize',14)
 hold off;
 %% Trumpet
+% get MFCC from the sound files and store them in trumpetdata
 trumpetdata = [];
 truID = 'tru';
 figure; hold on;
@@ -436,11 +441,12 @@ for i = 1:dataAmount
     trumpetdata(i,:) = [mfcc];
     plot(trumpetdata(i,:))
 end
-title('Trumpet MFCC')
+title('Trumpet MFCC','FontSize',18)
 ylabel('Magnitude','FontSize',14)
 xlabel('Mel-Frequency Cepstrum-Coeffients','FontSize',14)
 hold off;
 %% Violin
+% get MFCC from the sound files and store them in violindata
 violindata = [];
 vioID = 'vio';
 figure; hold on;
@@ -450,7 +456,7 @@ for i = 1:dataAmount
     violindata(i,:) = [mfcc];
     plot(violindata(i,:))
 end
-title('Violin MFCC')
+title('Violin MFCC','FontSize',18)
 ylabel('Magnitude','FontSize',14)
 xlabel('Mel-Frequency Cepstrum-Coeffients','FontSize',14)
 hold off;
@@ -471,7 +477,7 @@ end
 
 % Data X
 X = [saxdata; clarinetdata; trumpetdata; violindata];
-%% dataset
+%% PRTOOLS 
 addpath('Toolboxes/prtools')
 warning('off','all'); prwarning(0); prwaitbar off;
 z = prdataset(X, labels);
@@ -479,9 +485,9 @@ z = prdataset(X, labels);
 %%
 figure
 scatterd(z)
-title('First 2 Mel-Frequency Cepstrum-Coeffients')
+title('First 2 Mel-Frequency Cepstrum-Coeffients','FontSize',18)
 
-%%
+%% Classification
 
 % generate test and training indicies with respect to the class frequencies
 part = cvpartition(labels,'HoldOut',0.1); % data divided into 10% test and 90% traning
@@ -490,7 +496,7 @@ part = cvpartition(labels,'HoldOut',0.1); % data divided into 10% test and 90% t
 pr_X_tr = prdataset(X(part.training,:), labels(part.training));
 pr_X_tst = prdataset(X(part.test, :), labels(part.test));
 
-%% Parametric and non-parametric classifier
+%% 
 % Train classifiers
 % parametric classifiers
 pr_nmsc = nmsc(pr_X_tr); % minimum distance classifier - nmsc
@@ -544,7 +550,7 @@ fprintf('Number of k''s in k-nearest neighbors classifier: %1.f\n', nr_nn_used)
 disp('REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH')
 
 
-%%
+%% Accuracy of Classifiers
 % Test the classifiers
 % apply classifier on test data and calculate confusion matrix
 
@@ -577,7 +583,7 @@ plotc(plot_qdc);
 title('Scatter plot of QDC classifier')
 
 
-%%
+%% Cross-validation with KNN
 close all
 part = cvpartition(labels,'KFold',10); % data divided into 10% test and 90% traning
 cMat = [];
@@ -632,6 +638,9 @@ comparison = [cosdist(mSax,mSax) cosdist(mSax,mClarinet) cosdist(mSax,mTrumpet) 
     cosdist(mViolin, mSax) cosdist(mViolin, mClarinet)  cosdist(mViolin, mTrumpet)  cosdist(mViolin, mViolin)];
 
 imagesc(comparison)
+set(gca,'XTick',[1 2 3 4],'XTickLabel',{'Saxophone', 'Clarinet', 'Trumpet','Violin'})
+set(gca,'YTick',[1 2 3 4],'YTickLabel',{'Saxophone', 'Clarinet', 'Trumpet','Violin'})
+title('Cosine Distance Between Instruments', 'FontSize',18)
 colorbar
 ##### SOURCE END #####
 --></body></html>
