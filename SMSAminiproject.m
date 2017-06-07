@@ -5,7 +5,7 @@
 % Setup with window size, hop size, and file paths
 clear; clc; close all;
 
-N = 2^10;
+N = 2^11;
 hop = N/2;
 sr = 48000;
 
@@ -28,6 +28,18 @@ T = triFilterBank(N, sr);
 coef = 13;
 dataAmount = 100;
 instrumentAmount = 4;
+
+%% Plot spectrum
+[s, ~] = audioread([filepathsax fileName(1, :)]);
+fftFreqs = (0:N-1)/N*sr;
+s = s(sr:sr+N-1,1);
+magS = abs(fft(s.*hamming(N)));
+plot(fftFreqs(1:N/2),magS(1:N/2))
+title('Saxophone spectrum','FontSize',18)
+ylabel('Magnitude','FontSize',14)
+xlabel('Frequency (Hz)','FontSize',14)
+
+
 %% Saxophone
 % get MFCC from the sound files and store them in saxdata
 saxdata = [];
